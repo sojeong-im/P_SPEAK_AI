@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid messages' }, { status: 400 })
     }
 
-    const history = messages.slice(0, -1).map((m: any) => ({
+    const history = messages.slice(0, -1).map((m: { role: string; content: string }) => ({
       role: m.role === 'user' ? 'user' : 'model',
       parts: [{ text: m.content }],
     }))

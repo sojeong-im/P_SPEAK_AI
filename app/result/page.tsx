@@ -141,7 +141,6 @@ function PronunciationPanel({
   audioUrl,
   perWord,
   weakPhonemes,
-  engine,
 }: {
   title: string
   subtitle: string

@@ -36,7 +36,7 @@ export default function SocialSpeechPage() {
   const startVolumeMeter = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext
+      const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext
       audioContextRef.current = new AudioContext()
       analyserRef.current = audioContextRef.current.createAnalyser()
       analyserRef.current.fftSize = 256
@@ -219,8 +219,8 @@ export default function SocialSpeechPage() {
                 <div
                   className="rounded-full bg-[#00C9A7] opacity-20 absolute"
                   style={{
-                    width: \`\${pulseSize}px\`,
-                    height: \`\${pulseSize}px\`,
+                    width: `${pulseSize}px`,
+                    height: `${pulseSize}px`,
                     transition: 'width 0.1s, height 0.1s'
                   }}
                 />
@@ -233,9 +233,9 @@ export default function SocialSpeechPage() {
           <button
             onClick={isRecording ? handleStopRecording : handleStartRecording}
             disabled={isThinking}
-            className={\`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-white shadow-lg transition-all \${
+            className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-white shadow-lg transition-all ${
               isThinking ? 'bg-gray-400 cursor-not-allowed' : (isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-[#00C9A7] hover:bg-[#00B396]')
-            }\`}
+            }`}
             style={{
               boxShadow: isRecording ? '0 4px 20px rgba(239, 68, 68, 0.4)' : '0 4px 20px rgba(0,201,167,0.35)'
             }}
