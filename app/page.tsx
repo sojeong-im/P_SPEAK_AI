@@ -187,7 +187,7 @@ export default function LandingPage() {
           >
             AI 펄스 대화 연습하기 🎙️
           </button>
-          <p style={{ fontSize: '13px', color: '#9CA3AF' }}>약 10분 소요 · 완전 무료</p>
+          <p style={{ fontSize: '13px', color: '#9CA3AF' }}>약 10분 소요</p>
         </motion.div>
       </div>
     </main>
