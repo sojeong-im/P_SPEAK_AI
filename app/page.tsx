@@ -102,7 +102,7 @@ export default function LandingPage() {
               letterSpacing: '0.12em',
             }}
           >
-            SPEAKUP × VOICE PRINT
+            PULSE × AI
           </span>
         </motion.div>
 
@@ -115,7 +115,7 @@ export default function LandingPage() {
           className="font-extrabold leading-tight whitespace-pre-line"
           style={{ fontSize: 'clamp(38px, 7vw, 66px)', color: '#111827', letterSpacing: '-0.02em' }}
         >
-          {'당신은 왜\n말하기가 어려운가요?'}
+          {'PULSE가 당신의\n사회성 스피치를 코칭합니다'}
         </motion.h1>
 
         {/* 서브텍스트 */}
@@ -127,7 +127,7 @@ export default function LandingPage() {
           className="whitespace-pre-line leading-relaxed"
           style={{ fontSize: '17px', color: '#6B7280' }}
         >
-          {'발음, 성향, 말하기 습관을 종합 분석해\n당신만의 스피치 DNA를 찾아드립니다'}
+          {'AI와 함께하는 실시간 핑퐁 대화로\n어떤 자리에서도 당당하게 말하는 법을 익혀보세요'}
         </motion.p>
 
         {/* 분석 아이템 3가지 */}

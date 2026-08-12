@@ -147,8 +147,8 @@ export default function SocialSpeechPage() {
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">사회성 스피치 연습</h1>
-            <p className="text-xs text-gray-500">가벼운 대화를 통해 사회성을 길러보세요</p>
+            <h1 className="text-xl font-bold text-gray-900">PULSE 사회성 음성 AI</h1>
+            <p className="text-xs text-gray-500">PULSE와 함께 가벼운 대화로 사회성을 길러보세요</p>
           </div>
         </div>
 
