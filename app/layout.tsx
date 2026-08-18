@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import PasswordProtection from '@/components/PasswordProtection'
 
 export const metadata: Metadata = {
   title: 'PULSE 사회성 음성 AI',
@@ -26,7 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen antialiased" style={{ background: '#F7FAF9', color: '#111827' }}>
-        {children}
+        <PasswordProtection>
+          {children}
+        </PasswordProtection>
       </body>
     </html>
   )
