@@ -70,17 +70,40 @@ interface ServerEvalResponse {
 }
 
 async function evalLine(audioBlob: Blob, audioType: 'wav', sampleRate: number, refText: string) {
-  const fd = new FormData()
-  fd.append('audio', audioBlob, 'recording.wav')
-  fd.append('refText', refText)
-  fd.append('coreType', 'sent.eval.promax')
-  fd.append('audioType', audioType)
-  fd.append('sampleRate', String(sampleRate))
-  fd.append('userId', 'reading-passage')
-  const res = await fetch('/api/pronunciation/evaluate', { method: 'POST', body: fd })
+  let res: Response | null = null;
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const fd = new FormData()
+      fd.append('audio', audioBlob, 'recording.wav')
+      fd.append('refText', refText)
+      fd.append('coreType', 'sent.eval.promax')
+      fd.append('audioType', audioType)
+      fd.append('sampleRate', String(sampleRate))
+      fd.append('userId', 'reading-passage')
+
+      res = await fetch('/api/pronunciation/evaluate', { method: 'POST', body: fd })
+      break;
+    } catch (e: any) {
+      lastError = e;
+      if (attempt < 2 && (e.message === 'Load failed' || e.message === 'Failed to fetch')) {
+        await new Promise(r => setTimeout(r, 1000)) // wait 1s before retry
+        continue;
+      }
+      throw e;
+    }
+  }
+
+  if (!res) {
+    throw lastError || new Error('Fetch failed');
+  }
+
   const json = (await res.json()) as ServerEvalResponse
   if (!res.ok || !json.ok || !json.result) {
-    throw new Error(json.error || `HTTP ${res.status}`)
+    const errorMsg = json.error || `HTTP ${res.status}`
+    const detail = json.detail ? ` (${json.detail})` : ''
+    throw new Error(errorMsg + detail)
   }
   // Engine name kept in console only — users do not need to see "speechsuper" / "azure"
   if (json.meta?.engine) {
@@ -259,15 +282,15 @@ export default function ReadingPage() {
       const wholeText = currentPassage.text.replace(/\n/g, ' ')
       const refsToEvaluate = lines.length >= 2 ? lines : [wholeText]
 
-      const [partials, whole] = await Promise.all([
-        Promise.all(
-          refsToEvaluate.map(line => evalLine(encoded.blob, encoded.audioType, encoded.sampleRate, line))
-        ),
-        // Whole-text call is skipped if there's only one line (it'd duplicate)
-        lines.length >= 2
-          ? evalLine(encoded.blob, encoded.audioType, encoded.sampleRate, wholeText)
-          : Promise.resolve(null as null | Awaited<ReturnType<typeof evalLine>>),
-      ])
+      const partials = []
+      for (const line of refsToEvaluate) {
+        partials.push(await evalLine(encoded.blob, encoded.audioType, encoded.sampleRate, line))
+      }
+
+      let whole: Awaited<ReturnType<typeof evalLine>> | null = null
+      if (lines.length >= 2) {
+        whole = await evalLine(encoded.blob, encoded.audioType, encoded.sampleRate, wholeText)
+      }
 
       const avg = (key: 'accuracyScore' | 'fluencyScore' | 'completenessScore' | 'prosodyScore') => {
         const xs = partials.map(p => p[key]).filter(v => v > 0)
