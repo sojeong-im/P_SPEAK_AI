@@ -85,9 +85,10 @@ async function evalLine(audioBlob: Blob, audioType: 'wav', sampleRate: number, r
 
       res = await fetch('/api/pronunciation/evaluate', { method: 'POST', body: fd })
       break;
-    } catch (e: any) {
-      lastError = e;
-      if (attempt < 2 && (e.message === 'Load failed' || e.message === 'Failed to fetch')) {
+    } catch (e) {
+      const error = e as Error;
+      lastError = error;
+      if (attempt < 2 && (error.message === 'Load failed' || error.message === 'Failed to fetch')) {
         await new Promise(r => setTimeout(r, 1000)) // wait 1s before retry
         continue;
       }
@@ -282,7 +283,7 @@ export default function ReadingPage() {
       const wholeText = currentPassage.text.replace(/\n/g, ' ')
       const refsToEvaluate = lines.length >= 2 ? lines : [wholeText]
 
-      const partials = []
+      const partials: Array<Awaited<ReturnType<typeof evalLine>>> = []
       for (const line of refsToEvaluate) {
         partials.push(await evalLine(encoded.blob, encoded.audioType, encoded.sampleRate, line))
       }
