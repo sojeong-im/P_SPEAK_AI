@@ -43,7 +43,7 @@ export default function LoadingPage() {
         try {
           const errJson = await res.json()
           if (errJson.detail) errDetail = `서버 오류: ${errJson.detail}`
-        } catch (_) {}
+        } catch {}
         throw new Error(errDetail)
       }
 
