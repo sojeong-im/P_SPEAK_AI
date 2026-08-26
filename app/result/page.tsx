@@ -559,9 +559,13 @@ export default function ResultPage() {
 
     const data = sessionStore.get()
 
-    if (!data.name || !data.typeScores || data.topType === undefined) {
+    if (!data.typeScores || data.topType === undefined) {
       router.replace('/')
       return
+    }
+
+    if (!data.name) {
+      data.name = '익명'
     }
 
     setSession(data)
