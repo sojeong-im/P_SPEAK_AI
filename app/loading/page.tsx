@@ -39,7 +39,12 @@ export default function LoadingPage() {
       })
 
       if (!res.ok) {
-        throw new Error(`서버 오류 (${res.status})`)
+        let errDetail = `서버 오류 (${res.status})`
+        try {
+          const errJson = await res.json()
+          if (errJson.detail) errDetail = `서버 오류: ${errJson.detail}`
+        } catch (_) {}
+        throw new Error(errDetail)
       }
 
       const json = await res.json()
