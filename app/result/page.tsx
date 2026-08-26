@@ -492,28 +492,24 @@ export default function ResultPage() {
 
   useEffect(() => {
     // Shareable result mode: /result?id=<uuid> fetches from DB and renders
-    // the same UI without depending on browser sessionStorage. Audio is not
-    // available in this mode (it lives in the original user's IndexedDB).
     const idFromUrl =
       typeof window !== 'undefined'
         ? new URLSearchParams(window.location.search).get('id')
         : null
 
     if (idFromUrl) {
-      let cancelled = false
-      ;(async () => {
-        try {
-          const res = await fetch(`/api/responses/${idFromUrl}`)
-          if (!res.ok) throw new Error(`HTTP ${res.status}`)
-          const json = await res.json()
-          if (cancelled) return
-          if (!json?.ok || !json.response) {
+      fetch(`/api/responses/${idFromUrl}`)
+        .then(res => res.json())
+        .then(json => {
+          if (!json.success) {
             router.replace('/')
             return
           }
           const r = json.response
           setSession({
-            name: r.name,
+            name: r.name || '익명',
+            typeScores: r.typeScores,
+            topType: r.topType,
             pronunciation1: {
               accuracyScore: r.pronunciation1Accuracy ?? 0,
               fluencyScore: r.pronunciation1Fluency ?? 0,
@@ -559,7 +555,14 @@ export default function ResultPage() {
 
     const data = sessionStore.get()
 
-    if (!data.name || !data.typeScores || data.topType === undefined) {
+    if (!data.typeScores || data.topType === undefined) {
+      router.replace("/")
+      return
+    }
+    if (!data.name) {
+      data.name = "익명"
+    }
+    if (false) {
       router.replace('/')
       return
     }
