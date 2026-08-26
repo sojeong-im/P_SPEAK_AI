@@ -53,7 +53,8 @@ function getGrade(score: number): GradeInfo {
 // Progress bar (used for pronunciation scores)
 // ─────────────────────────────────────────────
 function ProgressBar({ label, value }: { label: string; value: number }) {
-  const pct = Math.max(0, Math.min(100, Math.round(value)))
+  const safeValue = typeof value === 'number' && !isNaN(value) ? value : 0
+  const pct = Math.max(0, Math.min(100, Math.round(safeValue)))
   const grade = getGrade(pct)
   return (
     <div className="flex flex-col gap-1.5">
