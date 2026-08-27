@@ -1,39 +1,31 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { responses } from '@/lib/db/schema'
-import { desc, eq } from 'drizzle-orm'
+import { desc } from 'drizzle-orm'
+import { adminAuth } from '@/lib/firebase/admin'
 
-function checkAdmin(request: NextRequest): boolean {
-  const auth = request.headers.get('x-admin-password')
-  return auth === process.env.ADMIN_PASSWORD
-}
+export async function GET(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    const token = authHeader.split('Bearer ')[1]
+    
+    // Verify Firebase token
+    try {
+      await adminAuth.verifyIdToken(token)
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  if (!checkAdmin(request)) {
-    return NextResponse.json({ error: '인증 실패' }, { status: 401 })
+    // Fetch all responses ordered by newest first
+    const data = await db.select().from(responses).orderBy(desc(responses.createdAt))
+    
+    return NextResponse.json({ success: true, data })
+  } catch (error) {
+    console.error('Admin API Error:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-
-  const { searchParams } = new URL(request.url)
-  const id = searchParams.get('id')
-
-  if (id) {
-    const [row] = await db.select().from(responses).where(eq(responses.id, id))
-    if (!row) return NextResponse.json({ error: '없음' }, { status: 404 })
-    return NextResponse.json(row)
-  }
-
-  const rows = await db.select({
-    id: responses.id,
-    name: responses.name,
-    topType: responses.topType,
-    pronunciation1Accuracy: responses.pronunciation1Accuracy,
-    pronunciation1Fluency: responses.pronunciation1Fluency,
-    pronunciation2Accuracy: responses.pronunciation2Accuracy,
-    pronunciation2Fluency: responses.pronunciation2Fluency,
-    selectedStage: responses.selectedStage,
-    consultationInterest: responses.consultationInterest,
-    createdAt: responses.createdAt,
-  }).from(responses).orderBy(desc(responses.createdAt))
-
-  return NextResponse.json(rows)
 }
