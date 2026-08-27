@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { onAuthStateChanged, signOut, User } from 'firebase/auth'
-import { auth } from '@/lib/firebase/config'
 
 type ResponseRow = {
   id: string
@@ -13,34 +11,30 @@ type ResponseRow = {
   selectedStage: string
   stageDetail: string
   geminiReport: string
-  // you can add more fields if needed
 }
 
 export default function AdminDashboardPage() {
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<ResponseRow[]>([])
   const [error, setError] = useState('')
+  const [authorized, setAuthorized] = useState(false)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser) {
-        router.replace('/admin/login')
-      } else {
-        setUser(currentUser)
-        await fetchData(currentUser)
-      }
-    })
-    return () => unsubscribe()
+    const passcode = localStorage.getItem('admin_passcode')
+    if (passcode !== '00347') {
+      router.replace('/admin/login')
+    } else {
+      setAuthorized(true)
+      fetchData(passcode)
+    }
   }, [router])
 
-  const fetchData = async (currentUser: User) => {
+  const fetchData = async (passcode: string) => {
     try {
-      const token = await currentUser.getIdToken()
       const res = await fetch('/api/admin/responses', {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${passcode}`
         }
       })
       if (!res.ok) throw new Error('데이터를 불러오지 못했습니다.')
@@ -53,16 +47,16 @@ export default function AdminDashboardPage() {
     }
   }
 
-  const handleLogout = async () => {
-    await signOut(auth)
+  const handleLogout = () => {
+    localStorage.removeItem('admin_passcode')
     router.replace('/admin/login')
   }
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
-  }
+  if (!authorized) return null
 
-  if (!user) return null
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">데이터를 불러오는 중입니다...</div>
+  }
 
   return (
     <main className="min-h-screen p-8" style={{ backgroundColor: '#F7FAF9', fontFamily: 'Pretendard, sans-serif' }}>
