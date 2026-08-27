@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     // Verify Firebase token
     try {
       await adminAuth.verifyIdToken(token)
-    } catch (e) {
+    } catch {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
