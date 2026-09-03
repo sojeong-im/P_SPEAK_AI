@@ -19,45 +19,48 @@ const SCALE_OPTIONS = [
 
 const EASE = [0.25, 0.46, 0.45, 0.94] as unknown as import('framer-motion').Easing
 
-// Likert 1..5 → −2..+2 (3='보통' contributes 0, so "all medium" gives all 0).
-// Reverse-coded items flip the sign so "agree" subtracts from that type.
+// Likert 1..5. Reverse-coded items flip the scale (6 - raw).
 // Tie-break: when two types tie, the one with higher answer variance wins
 // (the user gave more decisive answers about that type). Final tie-break
 // falls back to the lower typeId for stability.
 function calculateTypeScores(
   answers: Record<number, number>
 ): { typeScores: TypeScores; topType: number } {
-  const perTypeWeighted: Record<number, number[]> = {
+  const perTypeScores: Record<number, number[]> = {
+    1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [],
+  }
+  const perTypeDecisiveness: Record<number, number[]> = {
     1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [],
   }
 
   PERSONALITY_QUESTIONS.forEach(q => {
     const raw = answers[q.id] ?? 3
-    const centered = raw - 3                              // 1..5 → -2..+2
-    const weighted = q.reverse ? -centered : centered     // flip reverse items
-    perTypeWeighted[q.typeId].push(weighted)
+    const score = q.reverse ? (6 - raw) : raw
+    const decisiveness = Math.abs(raw - 3)
+    perTypeScores[q.typeId].push(score)
+    perTypeDecisiveness[q.typeId].push(decisiveness)
   })
 
   const sumOf = (xs: number[]) => xs.reduce((a, b) => a + b, 0)
   const scores: TypeScores = {
-    type1: sumOf(perTypeWeighted[1]),
-    type2: sumOf(perTypeWeighted[2]),
-    type3: sumOf(perTypeWeighted[3]),
-    type4: sumOf(perTypeWeighted[4]),
-    type5: sumOf(perTypeWeighted[5]),
-    type6: sumOf(perTypeWeighted[6]),
-    type7: sumOf(perTypeWeighted[7]),
-    type8: sumOf(perTypeWeighted[8]),
-    type9: sumOf(perTypeWeighted[9]),
+    type1: sumOf(perTypeScores[1]),
+    type2: sumOf(perTypeScores[2]),
+    type3: sumOf(perTypeScores[3]),
+    type4: sumOf(perTypeScores[4]),
+    type5: sumOf(perTypeScores[5]),
+    type6: sumOf(perTypeScores[6]),
+    type7: sumOf(perTypeScores[7]),
+    type8: sumOf(perTypeScores[8]),
+    type9: sumOf(perTypeScores[9]),
   }
 
-  // Decisiveness = mean of |weighted|. Higher = more confident answers.
+  // Decisiveness = mean of |raw - 3|. Higher = more confident answers.
   const decisiveness: Record<number, number> = {}
   for (const tid of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-    const xs = perTypeWeighted[tid]
+    const xs = perTypeDecisiveness[tid]
     decisiveness[tid] = xs.length === 0
       ? 0
-      : xs.reduce((a, b) => a + Math.abs(b), 0) / xs.length
+      : sumOf(xs) / xs.length
   }
 
   const ranked = (Object.entries(scores) as [keyof TypeScores, number][]).sort(
