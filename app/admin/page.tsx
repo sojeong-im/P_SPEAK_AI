@@ -150,7 +150,7 @@ export default function AdminDashboardPage() {
                 
                 <div className="grid grid-cols-3 gap-3">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(type => {
-                    const score = selectedRow.typeScores?.[String(type)] || 0
+                    const score = selectedRow.typeScores?.[`type${type}`] || 0
                     return (
                       <div key={type} className="p-3 bg-gray-50 rounded-lg text-center flex flex-col">
                         <span className="text-gray-500 text-sm">{type}형</span>
